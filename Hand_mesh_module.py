@@ -43,8 +43,8 @@ def main():
         detection.detector(img, True)
         pos_list = detection.get_hand_positions(img)
         if pos_list:
-            cv2.circle(img,(pos_list[4][1],pos_list[4][2]), 10, (0,255,0),cv2.FILLED)
-            cv2.circle(img, (pos_list[8][1], pos_list[8][2]), 10, (0, 255, 0), cv2.FILLED)
+            cv2.circle(img,(pos_list[4][1],pos_list[4][2]), 7, (0,255,0),cv2.FILLED)
+            cv2.circle(img, (pos_list[8][1], pos_list[8][2]), 7, (0, 255, 0), cv2.FILLED)
         cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_TRIPLEX, 2, (255, 255, 255), 3)
         cv2.imshow("Image", img)
         cv2.waitKey(1)
