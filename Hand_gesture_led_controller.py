@@ -1,6 +1,7 @@
 import cv2
 import time
 import Hand_mesh_module as hmm
+import cvzone
 from cvzone.SerialModule import SerialObject
 import numpy as np
 
@@ -13,12 +14,20 @@ cap.set(3, wCam)
 cap.set(4, hCam)
 ptime = 0
 detector = hmm.HandDetection(min_detection_confidence=0.7)
-
+myClassifier = cvzone.Classifier("./keras_model.h5", "./labels.txt")
+access = False
 while True:
     success, img = cap.read()
     detector.detector(img, True)
     length = detector.get_distance(img)
-    if length:
+    predictions, index = myClassifier.getPrediction(img)
+    if not access:
+        if predictions[1]>0.75:
+            access = True
+            arduino.sendData([1,0,1])
+        else:
+            arduino.sendData([0,0,0])
+    if length and access==True:
 
         ard_len = np.interp(length, [30, 150], [0, 255])
         if ard_len == 0:
@@ -30,6 +39,8 @@ while True:
         sent_list[1] = int(ard_len)
         arduino.sendData(sent_list)
         print(sent_list)
+
+
     ctime = time.time()
     fps = 1 / (ctime - ptime)
     ptime = ctime
