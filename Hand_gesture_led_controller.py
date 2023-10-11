@@ -5,10 +5,10 @@ import cvzone
 from cvzone.SerialModule import SerialObject
 import numpy as np
 
-arduino = SerialObject("COM3", digits=3)
+arduino = SerialObject("COM4", digits=3)
 wCam = 640
 hCam = 480
-sent_list = [0,0]
+sent_list = [0,0, 0,0]
 cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
@@ -21,30 +21,34 @@ while True:
     detector.detector(img, True)
     length = detector.get_distance(img)
     predictions, index = myClassifier.getPrediction(img)
+    print(predictions)
     if not access:
         if predictions[1]>0.75:
             access = True
-            arduino.sendData([1,0,1])
+            sent_list[0] = 1
+            arduino.sendData(sent_list)
+
         else:
-            arduino.sendData([0,0,0])
+            sent_list[0] = 0
+            arduino.sendData(sent_list)
+    if predictions[0]>0.85:
+        access = False
     if length and access==True:
 
         ard_len = np.interp(length, [30, 150], [0, 255])
+        brightness = np.interp(ard_len, [0,255], [0,100])
+        sent_list[3] = int(brightness)
         if ard_len == 0:
-            sent_list[0] = 0
+            sent_list[1] = 0
         elif ard_len == 255:
-            sent_list[0] = 255
+            sent_list[1] = 255
         else:
-            sent_list[0] = 0
-        sent_list[1] = int(ard_len)
+            sent_list[1] = 0
+        sent_list[2] = int(ard_len)
         arduino.sendData(sent_list)
         print(sent_list)
 
 
-    ctime = time.time()
-    fps = 1 / (ctime - ptime)
-    ptime = ctime
-    cv2.putText(img, f"FPS: {int(fps)}", (40, 70), cv2.FONT_HERSHEY_TRIPLEX, 1, (255, 0, 255), 1)
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
